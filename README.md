@@ -62,6 +62,6 @@ The environment is considered solved, when the average (over 100 episodes) of th
 
 ### Instructions
 
-Follow the instructions in `Continuous_Control.ipynb` to get started with training your own agent!  
+Follow the instructions in `Continuous_Control.ipynb` to get started with training your own agent! This is the implementation of [DDPG](https://arxiv.org/pdf/1509.02971.pdf) paper 
 
 
