@@ -25,8 +25,11 @@ class Critic(nn.Module):
         self.fc5=nn.Linear(300,1)
         
         #last layer weight and bias initialization 
-        torch.nn.init.uniform_(self.fc5.weight, a=-3e-4, b=3e-4)
-        torch.nn.init.uniform_(self.fc5.bias, a=-3e-4, b=3e-4)
+        self.fc5.weight.data.uniform_(-3e-4, 3e-4)
+        self.fc5.bias.data.uniform_(-3e-4, 3e-4)
+        
+        #torch.nn.init.uniform_(self.fc5.weight, a=-3e-4, b=3e-4)
+        #torch.nn.init.uniform_(self.fc5.bias, a=-3e-4, b=3e-4)
         
     def forward(self, state,action):
         """Build a network that maps state & action to action values."""

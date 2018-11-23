@@ -20,6 +20,7 @@
 *.tar
 *.zip
 .ipynb_checkpoints/
+Crawler.app/
 Reacher.app/
 Reacher_parallel.app/
 __pycache__/

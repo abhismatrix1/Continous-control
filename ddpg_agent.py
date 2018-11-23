@@ -16,9 +16,10 @@ BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 64         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-ACTOR_LR = 1e-4         # Actor network learning rate 
-CRITIC_LR = 1e-3        # Actor network learning rate
-UPDATE_EVERY = 4        # how often to update the network
+ACTOR_LR = 1e-3         # Actor network learning rate 
+CRITIC_LR = 1e-4        # Actor network learning rate
+UPDATE_EVERY = 20       # how often to update the network (time step)
+UPDATE_TIMES = 10       # how many times to update in one go
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -65,7 +66,8 @@ class Agent():
     
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
-        self.memory.add(state, action, reward, next_state, done)
+        for i in range(self.num_agents):
+            self.memory.add(state[i], action[i], reward[i], next_state[i], done[i])
         
         # Learn every UPDATE_EVERY time steps.
         self.t_step = (self.t_step + 1) % UPDATE_EVERY
@@ -73,10 +75,11 @@ class Agent():
         if self.t_step == 0:
             # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > BATCH_SIZE: 
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+                for i in range(UPDATE_TIMES):
+                    experiences = self.memory.sample()
+                    self.learn(experiences, GAMMA)
 
-    def act(self, state):
+    def act(self, state,training=True):
         """Returns continous actions values for all action for given state as per current policy.
         
         Params
@@ -92,7 +95,12 @@ class Agent():
         self.actor_local.train()
         
         #return action values with added NOISE as per DDPG paper 
-        return actions.cpu().data.numpy()+random_process.sample()
+        if training:
+            actin=actions.cpu().data.numpy()#+random_process.sample()
+            #actin=np.clip(actin,-1,1)
+        else:
+            actin=actions.cpu().data.numpy() 
+        return actin
 
     def learn(self, experiences, gamma):
         
@@ -107,10 +115,9 @@ class Agent():
         states, actions, rewards, next_states, dones = experiences
 
         next_actions=self.actor_target(next_states)
-        with torch.no_grad():
-            
-            Q_target_next = self.critic_target(next_states,next_actions).detach()[0].unsqueeze(1)
-            Q_targets= rewards +(gamma * Q_target_next * (1-dones))
+        
+        Q_target_next = self.critic_target(next_states,next_actions)
+        Q_targets= rewards +(gamma * Q_target_next * (1-dones))
         
         Q_expected = self.critic_local(states,actions)
         
@@ -123,8 +130,8 @@ class Agent():
         self.optimizer_actor.step()
         
         #actor loss
-        actions = self.actor_local(states)
-        p_loss=-self.critic_local(states,actions).mean()
+        action_pr = self.actor_local(states)
+        p_loss=-self.critic_local(states,action_pr).mean()
         
         self.optimizer_critic.zero_grad()
         p_loss.backward()
