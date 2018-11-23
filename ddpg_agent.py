@@ -3,9 +3,6 @@ import random
 from collections import namedtuple, deque
 
 from model import Critic, Actor
-import random_p as rm
-from schedule import LinearSchedule
-
 import torch
 from torch import autograd
 from torch import nn
@@ -23,13 +20,11 @@ UPDATE_TIMES = 10       # how many times to update in one go
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-#random process
-random_process=rm.OrnsteinUhlenbeckProcess(size=(4, ), std=LinearSchedule(0.2))
 
 class Agent():
     """Interacts with and learns from the environment."""
 
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size, num_agents,seed):
         """Initialize an Agent object.
         
         Params
@@ -41,6 +36,7 @@ class Agent():
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(seed)
+        self.num_agents=num_agents
 
         # critic local and target network (Q-Learning)
         self.critic_local = Critic(state_size, action_size, seed).to(device)
@@ -93,14 +89,8 @@ class Agent():
         with torch.no_grad():
             actions=self.actor_local(state)
         self.actor_local.train()
-        
-        #return action values with added NOISE as per DDPG paper 
-        if training:
-            actin=actions.cpu().data.numpy()#+random_process.sample()
-            #actin=np.clip(actin,-1,1)
-        else:
-            actin=actions.cpu().data.numpy() 
-        return actin
+
+        return actions.cpu().data.numpy()
 
     def learn(self, experiences, gamma):
         
