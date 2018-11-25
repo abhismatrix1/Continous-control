@@ -7,13 +7,13 @@ I have implemented DDPG algorithm for continous control environment (20 agents w
 I updated the critic and actor model after every 20 times step 10 times in a go. In my case i found that traiining was stable as can be seen from below graph.
 
 #### Chossen yper parameters
-- BUFFER_SIZE = int(1e6)  # replay buffer size
-- BATCH_SIZE = 64         # minibatch size
-- GAMMA = 0.99            # discount factor
-- TAU = 1e-3              # for soft update of target parameters
-- ACTOR_LR = 1e-3         # Actor network learning rate 
-- CRITIC_LR = 1e-4        # Actor network learning rate
-- UPDATE_EVERY = 20       # how often to update the network (time step)
+- Replay buffer size = 1e6  
+- Minibatch size = 64
+- Discount factor = 0.99
+- Soft update of target parameters coefficient(TAU) = 1e-3
+- Actor network learning rate  = 1e-3
+- Critic network learning rate = 1e-4
+- How often to update the network (time step) = 20      
 
 
 #### Actor artitecture 
