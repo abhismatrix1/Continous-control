@@ -1,3 +1,5 @@
+[image2]: https://github.com/abhismatrix1/Continous-control/blob/master/training_graph.png "training graph"
+
 ### Algorithm Implemented - DDPG ( 20 agents)
 I have implemented DDPG algorithm for continous control environment (20 agents with its own copy of environment). Applied noise to actions for exploration. Have used noise as described in the paper. 
 
@@ -6,7 +8,7 @@ I updated the critic and actor model after every 20 times step 10 times in a go.
 
 ### Result of training
 The environment was solved in 53 episodes. Average running scores graph is below
-![Training Graph](image2)
+![Training Graph][image2]
 
 ### improvement for future work
 
