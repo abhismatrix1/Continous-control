@@ -10,7 +10,6 @@ I updated the critic and actor model after every 20 times step 10 times in a go.
 The environment was solved in 53 episodes. Average running scores graph is below
 ![Training Graph][image2]
 
-### improvement for future work
+### Future work
 
 1. Implementation of adding noise to model parameter than to action will help the model to improve as shown by OpenAI.
-2. 
