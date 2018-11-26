@@ -5,7 +5,7 @@ import torch.nn.functional as F
 class Critic(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size,fc1,fc2, seed):
         """Initialize parameters and build model.
         Params
         ======
@@ -16,13 +16,13 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
 
-        self.fc1=nn.Linear(state_size,400)
-        self.fc2=nn.Linear(400+action_size,300)
+        self.fc1=nn.Linear(state_size,fc1)
+        self.fc2=nn.Linear(fc1+action_size,fc2)
         
         self.bn=nn.BatchNorm1d(state_size)
-        self.bn2=nn.BatchNorm1d(400)
+        self.bn2=nn.BatchNorm1d(fc1)
  
-        self.fc5=nn.Linear(300,1)
+        self.fc5=nn.Linear(fc2,1)
         
         #last layer weight and bias initialization 
         self.fc5.weight.data.uniform_(-3e-4, 3e-4)
@@ -46,7 +46,7 @@ class Critic(nn.Module):
     
 class Actor(nn.Module):
 
-    def __init__(self,state_size, action_size, seed):
+    def __init__(self,state_size, action_size, fc1,fc2,seed):
         super(Actor, self).__init__()
         
 
@@ -55,12 +55,12 @@ class Actor(nn.Module):
         self.seed = torch.manual_seed(seed)
         
         self.bn=nn.BatchNorm1d(state_size)
-        self.bn2=nn.BatchNorm1d(400)
-        self.bn3=nn.BatchNorm1d(300)
+        self.bn2=nn.BatchNorm1d(fc1)
+        self.bn3=nn.BatchNorm1d(fc2)
         
-        self.fc1= nn.Linear(state_size,400)
-        self.fc2 = nn.Linear(400,300)
-        self.fc4 = nn.Linear(300, action_size)
+        self.fc1= nn.Linear(state_size,fc1)
+        self.fc2 = nn.Linear(fc1,fc2)
+        self.fc4 = nn.Linear(fc2, action_size)
         
         #last layer weight and bias initialization 
         torch.nn.init.uniform_(self.fc4.weight, a=-3e-3, b=3e-3)

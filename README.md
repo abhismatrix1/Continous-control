@@ -92,7 +92,7 @@ Follow the instructions in `Continuous_Control.ipynb` to get started with traini
 
 ### Training graph
 
-Environment is solved in 53 episodes for version 2. Here is the training plot.
+Environment is solved in 60 episodes for version 2. Here is the training plot.
 ![training graph][image2]
 
 

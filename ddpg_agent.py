@@ -8,6 +8,8 @@ from torch import autograd
 from torch import nn
 import torch.nn.functional as F
 import torch.optim as optim
+import random_p as rm
+from schedule import LinearSchedule
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 64         # minibatch size
@@ -16,7 +18,7 @@ TAU = 1e-3              # for soft update of target parameters
 ACTOR_LR = 1e-3         # Actor network learning rate 
 CRITIC_LR = 1e-4        # Actor network learning rate
 UPDATE_EVERY = 20       # how often to update the network (time step)
-UPDATE_TIMES = 10       # how many times to update in one go
+#UPDATE_TIMES = 10       # how many times to update in one go
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -24,7 +26,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Agent():
     """Interacts with and learns from the environment."""
 
-    def __init__(self, state_size, action_size, num_agents,seed):
+    def __init__(self, state_size, action_size, num_agents,seed,fc1=400,fc2=300,update_times=10):
         """Initialize an Agent object.
         
         Params
@@ -37,16 +39,21 @@ class Agent():
         self.action_size = action_size
         self.seed = random.seed(seed)
         self.num_agents=num_agents
+        self.update_times=update_times
+        
+        self.noise=[]
+        for i in range(num_agents):
+            self.noise.append(rm.OrnsteinUhlenbeckProcess(size=(action_size, ), std=LinearSchedule(0.2)))
 
         # critic local and target network (Q-Learning)
-        self.critic_local = Critic(state_size, action_size, seed).to(device)
+        self.critic_local = Critic(state_size, action_size,fc1,fc2, seed).to(device)
         
-        self.critic_target = Critic(state_size, action_size, seed).to(device)
+        self.critic_target = Critic(state_size, action_size,fc1,fc2, seed).to(device)
         self.critic_target.load_state_dict(self.critic_local.state_dict())
         
         # actor local and target network (Policy gradient)
-        self.actor_local=Actor(state_size, action_size, seed).to(device)
-        self.actor_target=Actor(state_size, action_size, seed).to(device)
+        self.actor_local=Actor(state_size, action_size,fc1,fc2, seed).to(device)
+        self.actor_target=Actor(state_size, action_size,fc1,fc2, seed).to(device)
         self.actor_target.load_state_dict(self.actor_local.state_dict())
         
         # optimizer for critic and actor network
@@ -71,7 +78,7 @@ class Agent():
         if self.t_step == 0:
             # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > BATCH_SIZE: 
-                for i in range(UPDATE_TIMES):
+                for i in range(self.update_times):
                     experiences = self.memory.sample()
                     self.learn(experiences, GAMMA)
 
@@ -83,14 +90,19 @@ class Agent():
             state (array_like): current state
         """
         
-        state = torch.from_numpy(state).float().detach().unsqueeze(0).to(device)
+        state = torch.from_numpy(state).float().detach().to(device)
+        #print(state.shape,"act")
         
         self.actor_local.eval()
         with torch.no_grad():
             actions=self.actor_local(state)
         self.actor_local.train()
-
-        return actions.cpu().data.numpy()
+        
+        noise=[]
+        for i in range(self.num_agents):
+            noise.append(self.noise[i].sample())
+        
+        return np.clip(actions.cpu().data.numpy()+np.array(noise),-1,1)
 
     def learn(self, experiences, gamma):
         
@@ -145,8 +157,10 @@ class Agent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
             
-    def reset_random():
-        random_process.reset_states()
+    def reset_random(self):
+        for i in range(self.num_agents):
+            self.noise[i].reset_states()
+        
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""

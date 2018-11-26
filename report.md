@@ -25,7 +25,7 @@ Critic is again a fully connected network with 2 hidden units. It has two inputs
 
 
 ### Result of training
-The environment was solved in 53 episodes. Average running scores graph is below
+The environment was solved in 60 episodes. Average running scores graph is below
 ![Training Graph][image2]
 
 

@@ -23,6 +23,7 @@
 Crawler.app/
 Reacher.app/
 Reacher_parallel.app/
+unity-environment.log
 __pycache__/
 
 # Logs and databases #
