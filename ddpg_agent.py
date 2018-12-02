@@ -12,7 +12,7 @@ import random_p as rm
 from schedule import LinearSchedule
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 64         # minibatch size
+BATCH_SIZE = 1024         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 ACTOR_LR = 1e-3         # Actor network learning rate 
@@ -65,6 +65,7 @@ class Agent():
         
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
+        self.a_step = 0
 
     
     def step(self, state, action, reward, next_state, done):
@@ -76,6 +77,7 @@ class Agent():
         self.t_step = (self.t_step + 1) % UPDATE_EVERY
         
         if self.t_step == 0:
+            
             # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > BATCH_SIZE: 
                 for i in range(self.update_times):
@@ -132,17 +134,21 @@ class Agent():
         self.optimizer_actor.step()
         
         #actor loss
+        
+        
+        
         action_pr = self.actor_local(states)
         p_loss=-self.critic_local(states,action_pr).mean()
-        
+
         self.optimizer_critic.zero_grad()
         p_loss.backward()
         self.optimizer_critic.step()
-        
+         
+
         # ------------------- update target network ------------------- #
 
         self.soft_update(self.critic_local, self.critic_target, TAU)
-        self.soft_update(self.actor_local, self.actor_target, TAU)  
+        self.soft_update(self.actor_local, self.actor_target, TAU)
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
