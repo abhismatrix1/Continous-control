@@ -12,7 +12,7 @@ import random_p as rm
 from schedule import LinearSchedule
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 1024         # minibatch size
+BATCH_SIZE = 256         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 ACTOR_LR = 1e-3         # Actor network learning rate 
@@ -57,8 +57,8 @@ class Agent():
         self.actor_target.load_state_dict(self.actor_local.state_dict())
         
         # optimizer for critic and actor network
-        self.optimizer_actor = optim.Adam(self.critic_local.parameters(), lr=CRITIC_LR)
-        self.optimizer_critic = optim.Adam(self.actor_local.parameters(), lr=ACTOR_LR)
+        self.optimizer_critic = optim.Adam(self.critic_local.parameters(), lr=CRITIC_LR)
+        self.optimizer_actor = optim.Adam(self.actor_local.parameters(), lr=ACTOR_LR)
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
@@ -119,19 +119,19 @@ class Agent():
         states, actions, rewards, next_states, dones = experiences
 
         next_actions=self.actor_target(next_states)
-        
-        Q_target_next = self.critic_target(next_states,next_actions)
+        with torch.no_grad():
+            Q_target_next = self.critic_target(next_states,next_actions)
         Q_targets= rewards +(gamma * Q_target_next * (1-dones))
         
         Q_expected = self.critic_local(states,actions)
         
         #critic loss
-        loss=F.mse_loss(Q_expected, Q_targets)
+        loss=F.mse_loss(Q_expected, Q_targets.detach())
         
-        self.optimizer_actor.zero_grad()
+        self.optimizer_critic.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.critic_local.parameters(), 1)
-        self.optimizer_actor.step()
+        self.optimizer_critic.step()
         
         #actor loss
         
@@ -140,10 +140,12 @@ class Agent():
         action_pr = self.actor_local(states)
         p_loss=-self.critic_local(states,action_pr).mean()
 
-        self.optimizer_critic.zero_grad()
+        
+        
+        self.optimizer_actor.zero_grad()
         p_loss.backward()
-        self.optimizer_critic.step()
-         
+        
+        self.optimizer_actor.step()
 
         # ------------------- update target network ------------------- #
 
